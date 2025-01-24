@@ -248,35 +248,44 @@ class AbsensiController extends Controller
         // Mengambil data absensi dengan eager loading relasi user dan jabatan_organisasi
         $absensis = $query->with('user.data_pribadi.jabatan_organisasi')->orderBy('created_at', 'desc')->get();
 
-        // Membuat laporan absensi
         $laporanGaji = [];
+        $groupedAbsensi = $absensis->groupBy('user.id');
 
-        foreach ($absensis as $absensi) {
-            // Mengambil data jabatan dari data pribadi pengguna
-            $jabatan = $absensi->user->data_pribadi ? $absensi->user->data_pribadi->jabatan_organisasi : null;
+        foreach ($groupedAbsensi as $userId => $userAbsensi) {
+            $user = $userAbsensi->first()->user;
+            $jabatan = $user->data_pribadi ? $user->data_pribadi->jabatan_organisasi : null;
 
-            // Mendapatkan gaji pokok
             $gajiPokok = $jabatan ? $jabatan->besaran_gaji : 0;
+            $jumlahKeterlambatan = 0;
+            $jumlahAlpha = 0;
+            $jumlahIzin = 0;
+            $pinalti = 50000; // Penalti per keterlambatan/alpha
 
-            // Menghitung keterlambatan dan pinalti jika ada (anda bisa menambahkan logika ini)
-            $jumlahKeterlambatan = 0;  // Hitung berdasarkan absensi
-            $pinalti = 50000; // Misal pinalti per keterlambatan
+            foreach ($userAbsensi as $absensi) {
+                if ($absensi->status_absensi_masuk === 'alpha') {
+                    $jumlahAlpha++;
+                } elseif ($absensi->status_absensi_masuk === 'izin') {
+                    $jumlahIzin++;
+                }
+            }
 
-            // Hitung total pinalti dan gaji akhir
-            $totalPinalti = $jumlahKeterlambatan * $pinalti;
+            // Batasi maksimal izin 3x per bulan; alpha dihitung sebagai penalti langsung
+            $totalPinalti = ($jumlahAlpha + max(0, $jumlahIzin - 3)) * $pinalti;
             $gajiAkhir = $gajiPokok - $totalPinalti;
 
-            // Menyimpan data laporan gaji
             $laporanGaji[] = [
-                'nama' => $absensi->user->name,
+                'nama' => $user->name,
                 'jabatan' => $jabatan ? $jabatan->nama_jabatan : 'Tidak Diketahui',
                 'gaji_pokok' => $gajiPokok,
-                'jumlah_keterlambatan' => $jumlahKeterlambatan,
+                'jumlah_keterlambatan' => $jumlahAlpha + $jumlahIzin,
+                'jumlah_alpha' => $jumlahAlpha,
+                'jumlah_izin' => $jumlahIzin,
                 'pinalti_per_keterlambatan' => $pinalti,
                 'total_pinalti' => $totalPinalti,
                 'gaji_akhir' => $gajiAkhir,
             ];
         }
+        
 
 
         // Gabungkan absensi dan laporan gaji dalam PDF
