@@ -49,4 +49,10 @@ class User extends Authenticatable
         return $this->hasOne(DataPribadi::class);
     }
 
+    public function jabatan_organisasi()
+    {
+        return $this->belongsTo(JabatanOrganisasi::class);
+    }
+
+
 }
