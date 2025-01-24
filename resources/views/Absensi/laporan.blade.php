@@ -35,8 +35,10 @@
             <tr>
                 <th>No</th>
                 <th>Nama</th>
-                <th>Waktu Absensi</th>
-                <th>Keterangan</th>
+                <th>Waktu Absensi Masuk</th>
+                <th>Status Absensi Masuk</th>
+                <th>Waktu Absensi Pulang</th>
+                <th>Status Absensi Pulang</th>
             </tr>
         </thead>
         <tbody>
@@ -45,12 +47,33 @@
                 <tr>
                     <td>{{ $no++ }}</td>
                     <td>{{ $absensi->user->name }}</td>
-                    <td>{{ $absensi->created_at }}</td>
-                    <td>{{ $absensi->status_absensi }}</td>
+                    <td>{{ $absensi->waktu_masuk }}</td>
+                    <td>{{ $absensi->status_absensi_masuk }}</td>
+                    <td>{{ $absensi->waktu_pulang }}</td>
+                    <td>{{ $absensi->status_absensi_pulang }}</td>
                 </tr>
             @endforeach
         </tbody>
     </table>
+    <div class="mt-4">
+        <h1 style="text-align: center;">Laporan Absensi</h1>
+        <table>
+            <thead>
+            <tr>
+                <th>No</th>
+                <th>Nama</th>
+                <th>Jabatan</th>
+                <th>Gaji Pokok</th>
+                <th>Jumlah Keterlambatan</th>
+                <th>Pinalti 1x Keterlambatan</th>
+                <th>Total Pinalti</th>
+                <th>Gaji Akhir</th>
+            </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
 </body>
 
 </html>
