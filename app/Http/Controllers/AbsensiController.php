@@ -9,54 +9,67 @@ use App\Models\Absensi;
 use App\Models\JabatanOrganisasi;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Models\User;
+use Illuminate\Support\Facades\Log;
 
 class AbsensiController extends Controller
 {
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function index(Request $request)
     {
         // Logika Filter
         if ($request->ajax()) {
-            $filterType = $request->input('filter'); // hari, bulan, atau tahun
-            $filterValue = $request->input('value'); // nilai filter
+            $date = $request->input('date');
+            $month = $request->input('month');
+            $year = $request->input('year');
+
+            /*Log::info("Tanggal yang diterima: " . $date);*/
 
             $query = Absensi::query();
 
-            // Terapkan filter berdasarkan parameter
-            if ($filterType === 'hari' && $filterValue) {
-                $query->whereDate('created_at', $filterValue);
-            } elseif ($filterType === 'bulan' && $filterValue) {
-                $query->whereMonth('created_at', Carbon::parse($filterValue)->month)
-                    ->whereYear('created_at', Carbon::parse($filterValue)->year);
-            } elseif ($filterType === 'tahun' && $filterValue) {
-                $query->whereYear('created_at', $filterValue);
+            /*// Log Query
+            Log::info("Query sebelum filter: " . $query->toSql());*/
+
+            if ($date) {
+                $tanggal_mulai_input = date('Y-m-d 00:00:00', strtotime($date));
+                $tanggal_terakhir_akhir = date('Y-m-d 23:59:59', strtotime($date));
+
+                /*Log::info("Tanggal mulai: " . $tanggal_mulai_input . " Tanggal terakhir: " . $tanggal_terakhir_akhir);*/
+                $query->whereBetween('created_at', [$tanggal_mulai_input, $tanggal_terakhir_akhir]);
+            }
+            if ($month) {
+                $tanggal_mulai_bulan = date('Y-m-01 00:00:00', strtotime($month));
+                $tanggal_akhir_bulan = date('Y-m-t 23:59:59', strtotime($month));
+                $query->whereBetween('created_at', [$tanggal_mulai_bulan, $tanggal_akhir_bulan]);
             }
 
-            // Filter data sesuai peran pengguna
+            if ($year) {
+                $tanggal_mulai_tahun = date('Y-01-01 00:00:00', strtotime($year));
+                $tanggal_akhir_bulan = date('Y-12-31 23:59:59', strtotime($year));
+
+                $query->whereBetween('created_at', [$tanggal_mulai_tahun, $tanggal_akhir_bulan]);
+            }
+
             $pengguna_aktif = auth()->user();
-            if ($pengguna_aktif->role == 'pegawai') {
+            if ($pengguna_aktif->role === 'pegawai') {
                 $query->where('user_id', $pengguna_aktif->id);
             }
 
-            // Tambahkan eager loading untuk relasi `user`
-            $filteredData = $query->with('user')->get()->map(function ($item) {
-                return [
-                    'id' => $item->id,
-                    'user' => $item->user,
-                    'status_absensi_masuk' => $item->status_absensi_masuk ?? '-',
-                    'waktu_masuk' => $item->waktu_masuk ? $item->waktu_masuk->format('d-m-Y H:i:s') : '-',
-                    'status_absensi_keluar' => $item->status_absensi_keluar ?? '-',
-                    'waktu_keluar' => $item->waktu_masuk ? $item->waktu_keluar->format('d-m-Y H:i:s') : '-',
-                ];
-            });
+            // Log Query setelah filter
+            /*Log::info("Query setelah filter: " . $query->toSql());*/
 
-            // Kembalikan respons JSON untuk AJAX
+            // Dapatkan hasilnya
+            $filteredData = $query->with('user')->get();
+
+            /*Log::info("Data hasil filter: " . $filteredData->toJson());*/
+
             return response()->json(['data' => $filteredData]);
         }
+
+
         // 1. SYARAT WAKTU
         $waktu_sekarang = Carbon::now();
         $pengaturan_absensis = PengaturanAbsensi::first();
@@ -256,7 +269,7 @@ class AbsensiController extends Controller
             $jabatan = $user->data_pribadi ? $user->data_pribadi->jabatan_organisasi : null;
 
             $gajiPokok = $jabatan ? $jabatan->besaran_gaji : 0;
-            $jumlahKeterlambatan = 0;
+            /*$jumlahKeterlambatan = 0;*/
             $jumlahAlpha = 0;
             $jumlahIzin = 0;
             $pinalti = 50000; // Penalti per keterlambatan/alpha
@@ -285,7 +298,7 @@ class AbsensiController extends Controller
                 'gaji_akhir' => $gajiAkhir,
             ];
         }
-        
+
 
 
         // Gabungkan absensi dan laporan gaji dalam PDF
