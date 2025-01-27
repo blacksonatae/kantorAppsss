@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jan 24, 2025 at 01:31 AM
+-- Generation Time: Jan 27, 2025 at 02:17 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -45,7 +45,13 @@ CREATE TABLE `absensis` (
 INSERT INTO `absensis` (`id`, `user_id`, `waktu_masuk`, `waktu_pulang`, `status_absensi_masuk`, `status_absensi_pulang`, `created_at`, `updated_at`) VALUES
 (2, 15, '2025-01-23 16:08:03', '2025-01-23 16:08:27', 'hadir', 'pulang', '2025-01-23 16:08:03', '2025-01-23 16:08:27'),
 (3, 1, '2025-01-23 16:08:47', '2025-01-23 16:08:57', 'hadir', 'pulang', '2025-01-23 16:08:47', '2025-01-23 16:08:57'),
-(4, 1, '2025-01-23 17:09:19', '2025-01-23 17:09:28', 'hadir', 'pulang', '2025-01-23 17:09:19', '2025-01-23 17:09:28');
+(4, 1, '2025-01-23 17:09:19', '2025-01-23 17:09:28', 'hadir', 'pulang', '2025-01-23 17:09:19', '2025-01-23 17:09:28'),
+(9, 1, '2025-01-27 05:26:33', '2025-01-27 06:36:36', 'hadir', 'pulang', '2025-01-27 05:26:33', '2025-01-27 06:36:36'),
+(10, 15, '2025-01-27 06:35:50', '2025-01-27 06:36:46', 'hadir', 'pulang', '2025-01-27 06:35:50', '2025-01-27 06:36:46'),
+(11, 1, '2025-01-28 06:31:58', '2025-01-28 06:32:42', 'hadir', 'pulang', '2025-01-28 06:31:58', '2025-01-28 06:32:42'),
+(12, 15, '2025-01-28 06:32:29', '2025-01-28 06:32:55', 'hadir', 'pulang', '2025-01-28 06:32:29', '2025-01-28 06:32:55'),
+(13, 15, '2025-12-23 12:27:41', '2025-12-23 13:27:41', 'hadir', 'pulang', '2024-12-23 12:27:41', '2025-12-23 13:27:41'),
+(14, 15, '2025-12-24 12:27:41', '2025-12-24 13:27:41', 'hadir', 'pulang', '2024-12-24 12:27:41', '2025-12-24 13:27:41');
 
 -- --------------------------------------------------------
 
@@ -172,7 +178,7 @@ CREATE TABLE `pengaturan_absensis` (
 --
 
 INSERT INTO `pengaturan_absensis` (`id`, `waktu_buka`, `waktu_tutup`, `rentang_awal_IP`, `rentang_akhir_IP`, `created_at`, `updated_at`) VALUES
-(3, '06:00:00.0', '07:00:00.0', '127.0.0.1', '127.0.0.1', '2024-11-29 00:23:43', '2025-01-24 00:12:46');
+(3, '13:00:00.0', '14:50:00.0', '127.0.0.1', '127.0.0.1', '2024-11-29 00:23:43', '2025-01-28 06:33:17');
 
 -- --------------------------------------------------------
 
@@ -215,7 +221,7 @@ CREATE TABLE `users` (
 
 INSERT INTO `users` (`id`, `name`, `email`, `password`, `role`, `remember_token`, `created_at`, `updated_at`) VALUES
 (1, 'Admin', 'admin@material.com', '$2y$10$FLtRbpF3KMe4lYuA5AUgJ.SWV0491wuDD9yrkNFut2zFt6P6qbiga', 'admin', 'x60KRZNj8OekvyxaTLaxZLpREvJsXrMiT9WdHxWph8PhtxFkhBwFOh6ej5SQ', '2024-11-24 19:24:32', '2024-11-24 19:24:32'),
-(15, 'Pegawai', 'pegawai@gmail.com', '$2y$10$Iz3Djp559iL5jtHJIM5DZu.Rate/t9viJ1Iw9PGSKYoUO0Ga3vYdG', 'pegawai', NULL, '2024-12-04 00:36:15', '2025-01-23 15:10:21');
+(15, 'Pegawai', 'pegawai@gmail.com', '$2y$10$59bxgekEIPdh4EIh3Qmqg.JbBG1Jl5vI1FldxXDbV8hX/xn4VNmbq', 'pegawai', NULL, '2024-12-04 00:36:15', '2025-01-24 10:51:36');
 
 --
 -- Indexes for dumped tables
@@ -290,7 +296,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `absensis`
 --
 ALTER TABLE `absensis`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `data_pribadis`
