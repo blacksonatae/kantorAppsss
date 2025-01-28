@@ -4,9 +4,10 @@
         <!-- Navbar -->
         <x-navbars.navs.auth titlePage="Catatan Gaji"></x-navbars.navs.auth>
         <!-- End Navbar -->
-        <div class="container-fluid d-flex justify-content-center align-items-center">
+
+        <div class="container-fluid d-flex flex-wrap justify-content-center align-items-start overflow-auto" style="max-height: 80vh;">
             @if ($user)
-                <div class="col-4" style="margin-bottom: 10px">
+                <div class="col-4 mb-3">
                     <div class="card shadow-sm border-0">
                         <div class="card-body">
                             <div class="d-flex align-items-center mb-3">
@@ -36,7 +37,7 @@
                 </div>
             @else
                 @foreach ($users as $user)
-                    <div class="col-4 mx-3" style="margin-bottom: 10px">
+                    <div class="col-4 mx-3 mb-3">
                         <div class="card shadow-sm border-0">
                             <div class="card-body">
                                 <div class="d-flex align-items-center mb-3">
@@ -66,7 +67,6 @@
                     </div>
                 @endforeach
             @endif
-
         </div>
     </main>
 </x-layout>
