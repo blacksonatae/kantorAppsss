@@ -47,10 +47,10 @@ class AbsensiController extends Controller
             }
 
             if ($year) {
-                $tanggal_mulai_tahun = date('Y-01-01 00:00:00', strtotime($year));
-                $tanggal_akhir_bulan = date('Y-12-31 23:59:59', strtotime($year));
+                $tanggal_mulai_tahun = "{$year}-01-01 00:00:00";
+                $tanggal_akhir_tahun = "{$year}-12-31 23:59:59";
 
-                $query->whereBetween('created_at', [$tanggal_mulai_tahun, $tanggal_akhir_bulan]);
+                $query->whereBetween('created_at', [$tanggal_mulai_tahun, $tanggal_akhir_tahun]);
             }
 
             $pengguna_aktif = auth()->user();
@@ -249,19 +249,16 @@ class AbsensiController extends Controller
 
     public function downloadPDF(Request $request)
     {
-        $filterType = $request->input('filter'); // hari, bulan, atau tahun
-        $filterValue = $request->input('value'); // nilai filter
-
         $query = Absensi::query();
 
         // Menambahkan filter berdasarkan waktu
-        if ($filterType === 'hari' && $filterValue) {
-            $query->whereDate('created_at', $filterValue);
-        } elseif ($filterType === 'bulan' && $filterValue) {
-            $query->whereMonth('created_at', Carbon::parse($filterValue)->month)
-                ->whereYear('created_at', Carbon::parse($filterValue)->year);
-        } elseif ($filterType === 'tahun' && $filterValue) {
-            $query->whereYear('created_at', $filterValue);
+        if ($request->filter == 'date') {
+            $query->whereDate('created_at', $request->value);
+        } elseif ($request->filter == 'month') {
+            $query->whereYear('created_at', substr($request->value, 0, 4))
+                ->whereMonth('created_at', substr($request->value, 5, 2));
+        } elseif ($request->filter == 'year') {
+            $query->whereYear('created_at', $request->value);
         }
 
         // Mengecek apakah pengguna aktif adalah admin atau bukan
@@ -270,7 +267,7 @@ class AbsensiController extends Controller
             $query->where('user_id', $penggunaAktif->id);
         }
 
-        // Mengambil data absensi dengan eager loading relasi user dan jabatan_organisasi
+        // Mengambil data absensi dengan eager loading
         $absensis = $query->with('user.data_pribadi.jabatan_organisasi')->orderBy('created_at', 'desc')->get();
 
         $laporanGaji = [];
@@ -281,42 +278,54 @@ class AbsensiController extends Controller
             $jabatan = $user->data_pribadi ? $user->data_pribadi->jabatan_organisasi : null;
 
             $gajiPokok = $jabatan ? $jabatan->besaran_gaji : 0;
-            /*$jumlahKeterlambatan = 0;*/
             $jumlahAlpha = 0;
             $jumlahIzin = 0;
-            $pinalti = 50000; // Penalti per keterlambatan/alpha
+            $jumlahPulangCepat = 0;
+
+            $pinalti = 50000; // Penalti per alpha, izin lebih dari 3x, dan pulang cepat lebih dari 3x
 
             foreach ($userAbsensi as $absensi) {
-                if ($absensi->status_absensi_masuk === 'alpha') {
+                if ($absensi->status_absensi_masuk === 'Alpha') {
                     $jumlahAlpha++;
-                } elseif ($absensi->status_absensi_masuk === 'izin') {
+                } elseif ($absensi->status_absensi_masuk === 'Izin') {
                     $jumlahIzin++;
+                }
+                if ($absensi->status_absensi_pulang === 'Pulang Cepat') {
+                    $jumlahPulangCepat++;
                 }
             }
 
-            // Batasi maksimal izin 3x per bulan; alpha dihitung sebagai penalti langsung
-            $totalPinalti = ($jumlahAlpha + max(0, $jumlahIzin - 3)) * $pinalti;
-            $gajiAkhir = $gajiPokok - $totalPinalti;
+            // Hitung penalti masuk (izin lebih dari 3x dan alpha langsung kena penalti)
+            $totalPinaltiMasuk = max(0,$jumlahAlpha - 3) * $pinalti + max(0, $jumlahIzin - 3) * $pinalti;
+
+            // Hitung penalti pulang cepat (>3 kali dalam sebulan kena penalti)
+            $totalPinaltiPulang = max(0, $jumlahPulangCepat - 3) * $pinalti;
+
+            // Total penalti = penalti masuk + penalti pulang
+            $totalPinalti = $totalPinaltiMasuk + $totalPinaltiPulang;
+
+            // Hitung gaji akhir setelah penalti
+            $gajiAkhir = max(0, $gajiPokok - $totalPinalti);
 
             $laporanGaji[] = [
                 'nama' => $user->name,
                 'jabatan' => $jabatan ? $jabatan->nama_jabatan : 'Tidak Diketahui',
-                'gaji_pokok' => $gajiPokok,
-                'jumlah_keterlambatan' => $jumlahAlpha + $jumlahIzin,
                 'jumlah_alpha' => $jumlahAlpha,
                 'jumlah_izin' => $jumlahIzin,
-                'pinalti_per_keterlambatan' => $pinalti,
+                'jumlah_pulang_cepat' => $jumlahPulangCepat,
+                'total_pinalti_masuk' => $totalPinaltiMasuk,
+                'total_pinalti_pulang' => $totalPinaltiPulang,
                 'total_pinalti' => $totalPinalti,
+                'gaji_pokok' => $gajiPokok,
                 'gaji_akhir' => $gajiAkhir,
             ];
         }
 
-
-
-        // Gabungkan absensi dan laporan gaji dalam PDF
+        // Generate PDF dengan data laporan gaji
         $pdf = Pdf::loadView('Absensi.laporan', compact('absensis', 'laporanGaji'));
         return $pdf->download('laporan_absensi.pdf');
     }
+
 
 
 }

@@ -253,6 +253,8 @@
         </div>
         <script>
             $(document).ready(function () {
+                let currentFilter = {}; // Penyimpanan filter
+
                 // Pengecekan status dari backend untuk menentukan tab aktif
                 const disableMasuk = @json($disableMasuk);
                 const disablePulang = @json($disablePulang);
@@ -278,12 +280,15 @@
                 });
 
                 $("#pesan_sukses").delay(3000).fadeOut("slow");
-                let currentFilter = null;
 
                 // Fungsi Filter Tanggal
                 $('#applyDateFilter').on('click', function () {
                     var filterDate = $('#filterDate').val();
                     console.log('Tanggal Mulai:', filterDate);  // Periksa apakah tanggal yang dikirim sudah sesuai
+
+                    if (filterDate) {
+                        currentFilter = {filter: 'date', value: filterDate };
+                    }
 
                     $.ajax({
                         url: '/absensi',  // Pastikan URL sesuai dengan route yang benar
@@ -307,6 +312,10 @@
                     var filterMonth = $('#filterMonth').val();
                     console.log(`Bulan ${filterMonth}`);
 
+                    if (filterMonth) {
+                        currentFilter = {filter: 'month', value: filterMonth };
+                    }
+
                     $.ajax({
                         url: '/absensi',
                         type: 'GET',
@@ -329,6 +338,10 @@
                 $('#applyYearFilter').on('click', function () {
                     var filterYear = $('#filterYear').val();
                     console.log(`Bulan ${filterYear}`);
+
+                    if (filterYear) {
+                        currentFilter = {filter: 'year', value: filterYear };
+                    }
 
                     $.ajax({
                         url: '/absensi',
@@ -375,9 +388,10 @@
                 $('.download-pdf').on('click', function (e) {
                     e.preventDefault();
                     let url = "{{ route('absensi.download-pdf') }}";
-                    if (currentFilter) {
+                    /*  */
+                    if (currentFilter.filter && currentFilter.value) {
                         url += `?filter=${currentFilter.filter}&value=${currentFilter.value}`;
-                    }
+                    };
                     window.location.href = url;
                 });
 
