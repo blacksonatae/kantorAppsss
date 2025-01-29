@@ -43,35 +43,43 @@ class AbsensiAutoCommnad extends Command
 
         // **1. Absensi Masuk Otomatis (Alpha)**
         if ($waktu_sekarang->greaterThan($waktu_masuk_tutup)) {
-            $userWithoutAbsensiMasuk = User::whereDoesntHave('absensis', function ($query) use ($waktu_sekarang) {
-                $query->whereDate('created_at', $waktu_sekarang->toDateString())
-                    ->whereNotNull('waktu_masuk');
-            })->get();
+            $users = User::all();
 
-            foreach ($userWithoutAbsensiMasuk as $user) {
-                $absensi = new Absensi();
-                $absensi->user_id = $user->id;
-                $absensi->waktu_masuk = null; // Tidak ada waktu masuk
-                $absensi->status_absensi_masuk = 'alpha';
-                $absensi->status_absensi_pulang = '-'; // Pulang tidak bisa diisi
-                $absensi->save();
-                $this->info("User {$user->name} diberikan status absensi masuk 'alpha'.");
+            foreach ($users as $user) {
+                $absensi = Absensi::where('user_id', $user->id)
+                    ->whereDate('created_at', $waktu_sekarang->toDateString())
+                    ->first();
+
+                if (!$absensi) {
+                    $absensi = new Absensi();
+                    $absensi->user_id = $user->id;
+                    $absensi->waktu_masuk = $waktu_masuk_tutup;
+                    $absensi->status_absensi_masuk = 'Alpha';
+                    $absensi->waktu_pulang = $waktu_masuk_tutup;
+                    $absensi->status_absensi_pulang = '-';
+                    $absensi->save();
+
+                    $this->info("User {$user->name} diberikan status absensi masuk 'Alpha'.");
+                }
             }
         }
 
         // **2. Absensi Pulang Otomatis**
         if ($waktu_sekarang->greaterThan($waktu_pulang_tutup)) {
-            $absensisMasukHadir = Absensi::whereDate('created_at', $waktu_sekarang->toDateString())
-                ->whereNotNull('waktu_masuk') // User sudah absen masuk
-                ->where('status_absensi_masuk', 'hadir') // Hanya berlaku untuk status hadir
-                ->whereNull('waktu_pulang') // Belum ada absensi pulang
+            $absensis = Absensi::whereDate('created_at', $waktu_sekarang->toDateString())
+                ->whereNotNull('waktu_masuk')
+                ->where('status_absensi_masuk', 'Hadir')
+                ->whereNull('waktu_pulang')
                 ->get();
 
-            foreach ($absensisMasukHadir as $absensi) {
-                $absensi->waktu_pulang = $waktu_sekarang; // Waktu pulang otomatis
-                $absensi->status_absensi_pulang = 'pulang';
-                $absensi->save();
-                $this->info("User ID {$absensi->user_id} diberikan status absensi pulang 'pulang'.");
+            foreach ($absensis as $absensi) {
+                if (!$absensi->waktu_pulang) {
+                    $absensi->waktu_pulang = $waktu_sekarang;
+                    $absensi->status_absensi_pulang = 'Pulang';
+
+                    $absensi->save();
+                    $this->info("User ID {$absensi->user_id} diberikan status absensi pulang '{$absensi->status_absensi_pulang}'.");
+                }
             }
         }
 
