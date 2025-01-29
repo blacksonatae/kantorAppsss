@@ -141,8 +141,8 @@ class AbsensiController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'status_absensi_masuk' => 'nullable|string|in:hadir,izin,alpha',
-            'status_absensi_pulang' => 'nullable|string|in:pulang',
+            'status_absensi_masuk' => 'nullable|string|in:Hadir,Izin,Aplha',
+            'status_absensi_pulang' => 'nullable|string|in:Pulang',
         ]);
 
         $userId = auth()->id();
@@ -170,7 +170,7 @@ class AbsensiController extends Controller
 
         // Absensi Pulang
         if ($request->status_absensi_pulang) {
-            if (!$absensi || !$absensi->waktu_masuk || $absensi->status_absensi_masuk != 'hadir') {
+            if (!$absensi || !$absensi->waktu_masuk || $absensi->status_absensi_masuk != 'Hadir') {
                 return redirect()->back()->with('error', 'Anda belum melakukan absensi masuk dengan status "hadir".');
             }
 
@@ -178,8 +178,20 @@ class AbsensiController extends Controller
                 return redirect()->back()->with('error', 'Anda sudah melakukan absensi pulang hari ini.');
             }
 
+
             $absensi->waktu_pulang = now(); // Waktu pulang
-            $absensi->status_absensi_pulang = $request->status_absensi_pulang;
+            $hour = $absensi->waktu_pulang->hour; // Ambil jam dari waktu pulang
+
+            // Tentukan keterangan berdasarkan waktu pulang
+            if ($hour < 18) {
+                $keterangan = 'Pulang Cepat';
+            } elseif ($hour >= 20) {
+                $keterangan = 'Lembur';
+            } else {
+                $keterangan = 'Pulang'; // Default
+            }
+
+            $absensi->status_absensi_pulang = $keterangan;
             $absensi->save();
 
             return redirect()->back()->with('sukses', 'Absensi pulang berhasil!');

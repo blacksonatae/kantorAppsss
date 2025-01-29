@@ -21,7 +21,7 @@
             <button class="btn btn-primary mb-4 w-100"
                     data-bs-toggle="modal"
                     data-bs-target="#modal_absensi"
-                    @if($disableAll) disabled @endif>
+                    >
                 Absensi
             </button>
             <div class="row">
@@ -146,7 +146,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="4" class="font-weight-normal">
+                                        <td colspan="6" class="font-weight-normal">
                                             Tidak ada data absensi !
                                         </td>
                                     </tr>
@@ -178,7 +178,7 @@
                             <!-- Tab Menu -->
                             <ul class="nav nav-tabs" id="absensiTab" role="tablist">
                                 <li class="nav-item" role="presentation">
-                                    <button class="nav-link @if($disableMasuk) disabled @endif"
+                                    <button class="nav-link"
                                             id="masuk-tab"
                                             data-bs-toggle="tab"
                                             data-bs-target="#masuk"
@@ -190,7 +190,7 @@
                                     </button>
                                 </li>
                                 <li class="nav-item" role="presentation">
-                                    <button class="nav-link @if($disablePulang) disabled @endif"
+                                    <button class="nav-link"
                                             id="pulang-tab"
                                             data-bs-toggle="tab"
                                             data-bs-target="#pulang"
@@ -212,17 +212,17 @@
                                     <h6 class="mt-3">Pilih Status Masuk</h6>
                                     <div class="form-check">
                                         <input class="form-check-input" type="radio" name="status_absensi_masuk"
-                                               id="hadir" value="hadir">
+                                               id="hadir" value="Hadir">
                                         <label class="form-check-label" for="hadir">Hadir</label>
                                     </div>
                                     <div class="form-check">
                                         <input class="form-check-input" type="radio" name="status_absensi_masuk"
-                                               id="izin" value="izin">
+                                               id="izin" value="Izin">
                                         <label class="form-check-label" for="izin">Izin</label>
                                     </div>
                                     <div class="form-check">
                                         <input class="form-check-input" type="radio" name="status_absensi_masuk"
-                                               id="alpha" value="alpha">
+                                               id="alpha" value="Alpha">
                                         <label class="form-check-label" for="alpha">Alpha</label>
                                     </div>
                                 </div>
@@ -235,7 +235,7 @@
                                         absensi masuk dengan status "Hadir".</p>
                                     <div class="form-check">
                                         <input class="form-check-input" type="radio" name="status_absensi_pulang"
-                                               id="pulang" value="pulang">
+                                               id="pulang" value="Pulang">
                                         <label class="form-check-label" for="pulang">Pulang</label>
                                     </div>
                                 </div>
