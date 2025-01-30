@@ -91,13 +91,14 @@ class AbsensiController extends Controller
         $hasil_cek_double_absensi = $absensi_hari_ini !== null;
 
         // 4. DISABLE KONDISI
-        // Disable
-        // 4. DISABLE KONDISI
-        $disableMasuk = !$waktu_sekarang->between($waktu_masuk_buka, $waktu_masuk_tutup);
-        $disablePulang = !$waktu_sekarang->between($waktu_pulang_buka, $waktu_pulang_tutup);
+        $disableMasuk = $waktu_sekarang->greaterThan($waktu_masuk_tutup) || $absensi_hari_ini->status_absensi_masuk; // setelah jam waktu_masuk_tutup dari pengaturan absensi dan sudah absen masuk
+        $disablePulang = $waktu_sekarang->greaterThan($waktu_pulang_tutup) || $absensi_hari_ini->status_absensi_pulang; // setelah jam waktu_pulang_tutup dari pengaturan absensi dan sudah absen pulang
 
-        $disableAll = !$hasil_cek_ip || $disableMasuk && $disablePulang;
-
+        // disable button modal jika pengguna sudah absensi masuk dan pulang, serta sebelum jam tutup masuk dan setelah jam tutup pulang
+        $disableAll = !$hasil_cek_ip ||
+            ($absensi_hari_ini && $absensi_hari_ini->status_absensi_masuk && $absensi_hari_ini->status_absensi_pulang) ||
+            $waktu_sekarang->lessThan($waktu_masuk_buka) ||
+            $waktu_sekarang->greaterThan($waktu_pulang_tutup);
 
         // 5. MENGAMBIL DATA ABSENSI SESUAI PENGGUNA
         $pengguna_aktif = auth()->user();
@@ -106,7 +107,6 @@ class AbsensiController extends Controller
         } else {
             $absensis = $pengguna_aktif->absensis;
         }
-
 
         // 6. FITUR PENCARIAN (jika ada, tambahkan logika di sini)
 
@@ -159,10 +159,18 @@ class AbsensiController extends Controller
                 return redirect()->back()->with('error', 'Anda sudah melakukan absensi masuk hari ini.');
             }
 
+
             $absensi = new Absensi();
             $absensi->user_id = $userId;
             $absensi->waktu_masuk = now(); // Waktu masuk
             $absensi->status_absensi_masuk = $request->status_absensi_masuk;
+
+            // Jika alpha atau izin maka absensi pulang dianggap kosong '-'
+            if (in_array($request->status_absensi_masuk, ['Izin', 'Alpha'])) {
+                $absensi->waktu_pulang = now();
+                $absensi->status_absensi_pulang = '-';
+            }
+
             $absensi->save();
 
             return redirect()->back()->with('sukses', 'Absensi masuk berhasil!');

@@ -13,6 +13,13 @@
                     </div>
                 </div>
             @endif
+            @if (session('error'))
+                <div class="row">
+                    <div class="alert alert-danger text-white" role="alert" id="pesan_sukses">
+                        <strong>Error!</strong> {{ session('error') }}
+                    </div>
+                </div>
+            @endif
             @if (Auth()->user()->role == 'admin')
                 <a href="{{ route('pengaturanabsensi.index') }}" class="btn btn-primary w-100">Pengaturan
                     absensi</a>
@@ -21,7 +28,9 @@
             <button class="btn btn-primary mb-4 w-100"
                     data-bs-toggle="modal"
                     data-bs-target="#modal_absensi"
-                    >
+                    id="btn-absensi"
+                    @if($disableAll) disabled @endif
+            >
                 Absensi
             </button>
             <div class="row">
@@ -253,16 +262,37 @@
         </div>
         <script>
             $(document).ready(function () {
+                // Pengecekan status dari backend untuk menentukan tab aktif
+                let disableMasuk = @json($disableMasuk);
+                let disablePulang = @json($disablePulang);
+
+                // Jika tab masuk dinonaktifkan, langsung alihkan ke tab pulang
+                if (disableMasuk) {
+                    $('#masuk-tab').addClass('disabled');
+                    $('#masuk').removeClass('show active');
+                    $('#pulang-tab').click(); // Alihkan ke tab Pulang
+                }
+
+                // Jika tab pulang dinonaktifkan
+                if (disablePulang) {
+                    $('#pulang-tab').addClass('disabled');
+                }
+
+                // Nonaktifkan klik jika tab disabled
+                $('.nav-link.disabled').on('click', function (e) {
+                    e.preventDefault();
+                });
+
+                // Current Filter
                 let currentFilter = {}; // Penyimpanan filter
 
-                // Pengecekan status dari backend untuk menentukan tab aktif
-                const disableMasuk = @json($disableMasuk);
-                const disablePulang = @json($disablePulang);
+                /*// Jika Absensi Masuk dinonaktifkan, langsung alihkan ke tab Pulang
+                if ($disableMasuk) {
 
-                // Jika Absensi Masuk dinonaktifkan, langsung alihkan ke tab Pulang
+                }
                 if (disableMasuk) {
                     $('#pulang-tab').tab('show'); // Aktifkan tab Pulang
-                }
+                }*/
 
                 // Event listener untuk klik pada tombol tab Absensi Masuk
                 $('#masuk-tab').on('click', function (e) {
@@ -287,7 +317,7 @@
                     console.log('Tanggal Mulai:', filterDate);  // Periksa apakah tanggal yang dikirim sudah sesuai
 
                     if (filterDate) {
-                        currentFilter = {filter: 'date', value: filterDate };
+                        currentFilter = {filter: 'date', value: filterDate};
                     }
 
                     $.ajax({
@@ -313,7 +343,7 @@
                     console.log(`Bulan ${filterMonth}`);
 
                     if (filterMonth) {
-                        currentFilter = {filter: 'month', value: filterMonth };
+                        currentFilter = {filter: 'month', value: filterMonth};
                     }
 
                     $.ajax({
@@ -340,7 +370,7 @@
                     console.log(`Bulan ${filterYear}`);
 
                     if (filterYear) {
-                        currentFilter = {filter: 'year', value: filterYear };
+                        currentFilter = {filter: 'year', value: filterYear};
                     }
 
                     $.ajax({
@@ -359,6 +389,7 @@
                         }
                     });
                 });
+
                 // Fungsi untuk memperbarui tabel
                 function updateTable(data) {
                     console.log(data)
@@ -391,7 +422,8 @@
                     /*  */
                     if (currentFilter.filter && currentFilter.value) {
                         url += `?filter=${currentFilter.filter}&value=${currentFilter.value}`;
-                    };
+                    }
+                    ;
                     window.location.href = url;
                 });
 
