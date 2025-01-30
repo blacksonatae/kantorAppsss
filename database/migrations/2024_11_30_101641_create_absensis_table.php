@@ -18,7 +18,7 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id');
             $table->timestamp('waktu_masuk')->nullable();
             $table->timestamp('waktu_pulang')->nullable();
-            $table->enum('status_absensi_masuk', ['Masuk', 'Izin', 'Alpha'])->nullable();
+            $table->enum('status_absensi_masuk', ['Hadir', 'Izin', 'Alpha'])->nullable();
             $table->enum('status_absensi_pulang', ['Pulang Cepat', 'Pulang', 'Lembur', '-'])->nullable();
             $table->timestamps();
 
